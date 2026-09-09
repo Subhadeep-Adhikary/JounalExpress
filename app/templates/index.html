@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Page</title>
+</head>
+<style>
+    *{
+        margin:0px;
+        padding:0px;
+        box-sizing: border-box;
+    }
+    body{
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .cta-button {
+      background: #ff6b6b;
+      color: white;
+      padding: 15px 30px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    #main{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+</style>
+<body>
+    <div id="main">
+        <h3>Welcome to DiaryHub</h3>
+        <br>
+        <br>
+    <h4>One place to write your life journey,stories and keep those merories!!!!</h4><br>
+     <form action="{{ url_for('tasks.welcome') }}" method="post">
+        <button type="submit" class="cta-button">Get Started</button>
+     </form>
+    </div>
+</body>
+</html>

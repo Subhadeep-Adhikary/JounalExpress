@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}{{ connected_username }} Entries{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="margin-bottom: 14px;">
+        <a href="{{ url_for('connection.shared_connections') }}" style="text-decoration: none; color: #0f766e; font-weight: 600;">
+            <i class="fa-solid fa-arrow-left"></i> Back to Connections
+        </a>
+    </div>
+    <div style="margin-bottom: 16px;">
+        <a href="{{ url_for('connection.shared_write_connected_file', connected_username=connected_username) }}" style="text-decoration: none; color: #fff; background: #0f766e; padding: 10px 14px; border-radius: 8px; display: inline-block;">
+            <i class="fa-solid fa-pen"></i> Write Shared File
+        </a>
+    </div>
+
+    <div class="File_grid" style="width: 100%;">
+        <h3 style="display: block; color: #333;">Shared Files</h3>
+        {% for file in files %}
+        <div class="file_card shared-message-card {% if file.created_by == current_username %}sent-message{% else %}received-message{% endif %}">
+            <a class="file_info" href="{{ url_for('connection.shared_read_connected_file', connected_username=connected_username, entry_id=file._id) }}" style="flex: 1; padding: 20px; text-decoration: none; color: inherit;">
+                <span>{{ file.title or file.file }}</span><br>
+                <small style="color: #666;">by {{ file.created_by }}{% if file.date %} on {{ file.date }}{% endif %}</small>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

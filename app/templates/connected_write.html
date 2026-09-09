@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Write Shared File{% endblock %}
+
+{% block content %}
+<section style="max-width: 860px; margin: 24px auto; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 8px 26px rgba(0,0,0,0.06);">
+    <a href="{{ url_for('connection.shared_connection_entries', connected_username=connected_username) }}" style="text-decoration: none; color: #0f766e; font-weight: 600;">
+        <i class="fa-solid fa-arrow-left"></i> Back to Shared Files
+    </a>
+
+    <h2 style="margin: 14px 0 6px;">Write Shared File</h2>
+    <p style="margin-top: 0; color: #555;">This file will be visible to both you and {{ connected_username }}.</p>
+
+    <form method="post" style="display: grid; gap: 12px; margin-top: 16px;">
+        <input type="text" name="title" placeholder="Title (optional)" style="padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;">
+        <input type="text" name="filename" placeholder="Filename (optional)" style="padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <input type="date" name="entry_date" style="padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;">
+            <input type="text" name="place" placeholder="Place (optional)" style="padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;">
+        </div>
+        <textarea name="text_content" rows="12" placeholder="Write your shared message/file content..." required style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; resize: vertical;"></textarea>
+        <button type="submit" style="padding: 10px 14px; border: none; border-radius: 8px; background: #0f766e; color: #fff; width: fit-content; cursor: pointer;">
+            Save Shared File
+        </button>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div style="margin-bottom: 14px;">
+            <a href="{{ url_for('connection.connect_code') }}" style="text-decoration: none; color: #0f766e; font-weight: 600;">
+                Open My Connection Code
+            </a>
+        </div>
+        <div class="Date_grid">
+            <h3 style="display: block; color: #333;">Dates</h3>
+            {% for date in dates %}
+            {% if session.get('selected_date')==date %}
+            <form action="{{ url_for('tasks.view') }}" method="post" class="date_card">
+                <input type="hidden" name="form_name" value="df">
+                <input type="hidden" name="date" value="{{ date }}">
+                <button type="submit" style="background-color: aqua; border-color: blue;" class="date">
+                    {{ date }}
+                </button>
+            </form>
+            {% else %}
+            <form action="{{ url_for('tasks.view') }}" method="post" class="date_card">
+                <input type="hidden" name="form_name" value="df">
+                <input type="hidden" name="date" value="{{ date }}">
+                <button type="submit" class="date">
+                    {{ date }}
+                </button>
+            </form>
+            {% endif %}
+            {% endfor %}
+        </div>
+        <div class="File_grid">
+            <h3 style="display: block; color: #333;">Files</h3>
+            {% for file in files %}
+            <div class="file_card">
+                <a class="file_info" href="{{ url_for('tasks.read_file', filename=file.file)}}" style="flex: 1; padding: 20px; text-decoration: none; color: inherit;">
+                    <span>{{ file.title or file.file }}</span>
+                </a>
+                <form action="{{ url_for('tasks.view') }}" method="post" style="display: inline;">
+                    <input type="hidden" name="form_name" value="ff">
+                    <input type="hidden" name="file" value="{{ file.file }}">
+                    <button type="submit" class="edit-btn">
+                        <i class="fa-solid fa-pen"></i> Edit
+                    </button>
+                </form>
+                <form action="{{ url_for('tasks.delete') }}" method="post" style="display: inline;">
+                    <input type="hidden" name="file" value="{{ file.file }}">
+                    <input type="hidden" name="date" value="{{ session.get('selected_date') }}">
+                    <button type="submit" class="delete-btn">
+                        <i class="fa-solid fa-trash"></i> Delete
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+   </div>
+   <a href="{{ url_for('tasks.writing') }}" class="plus">
+    <i class="fa-solid fa-plus"></i>
+   </a>
+{% endblock %}
+
+{% block scripts %}
+   <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+{% endblock %}

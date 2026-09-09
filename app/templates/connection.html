@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Connections{% endblock %}
+
+{% block content %}
+<section style="max-width: 940px; margin: 24px auto;">
+    <h2 style="margin-bottom: 6px;">Connected Accounts</h2>
+    <p style="margin-top: 0; color: #555;">Open an account to view their shared messages and entries.</p>
+    <a href="{{ url_for('connection.connect_code') }}" style="display: inline-block; margin-top: 6px; text-decoration: none; color: #0f766e; font-weight: 600;">
+        <i class="fa-solid fa-link"></i> View My Connection Code
+    </a>
+
+    {% if connected_accounts %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 18px;">
+        {% for account in connected_accounts %}
+        <a href="{{ url_for('connection.shared_connection_entries', connected_username=account.username) }}"
+           style="text-decoration: none; color: inherit; background: #fff; border: 1px solid #ebebeb; border-radius: 12px; padding: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="font-size: 1.02rem;">{{ account.username }}</strong>
+                <i class="fa-solid fa-message" style="color: #0f766e;"></i>
+            </div>
+            <p style="margin: 12px 0 6px; color: #333;">
+                {{ account.latest_title }}
+            </p>
+            <small style="color: #777;">
+                {% if account.latest_date %}Last update: {{ account.latest_date }}{% else %}No date yet{% endif %}
+            </small>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="background: #fff; border: 1px dashed #ccc; border-radius: 12px; padding: 20px; margin-top: 18px;">
+        No connected accounts yet.
+    </div>
+    {% endif %}
+</section>
+{% endblock %}
