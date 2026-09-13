@@ -129,8 +129,8 @@ body{
         </form>
 
         <div class="footer-links">
-            <div class="small">Don't have an account? <a class="link" href="#">Sign up</a></div>
-            <div class="small"><a class="link" href="#">Skip for now</a></div>
+            <div class="small">Don't have an account? <a class="link" href="{{ url_for('auth.register') }}">Sign up</a></div>
+            <div class="small"><a class="link" href="{{ url_for('tasks.view') }}">Skip for now</a></div>
         </div>
     </main>
 </body>

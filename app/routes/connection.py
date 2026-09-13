@@ -6,6 +6,7 @@ from bson import ObjectId
 from flask import Blueprint, abort, flash, redirect, render_template, request, send_file, session, url_for
 import pandas as pd
 from app.extensions import db
+from app.security import decrypt_bytes, decrypt_text, encrypt_bytes, encrypt_json
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
@@ -26,6 +27,8 @@ def _text_to_rows(text):
 
 
 def _rows_to_text(content_rows):
+    if isinstance(content_rows, dict) and "ciphertext" in content_rows and "nonce" in content_rows:
+        return decrypt_text(content_rows)
     if isinstance(content_rows, str):
         return content_rows
     if not content_rows:
@@ -449,7 +452,7 @@ def write_connected_file(connected_username):
                         'user': str(username),
                         'filename': image_file.filename,
                         'content_type': image_file.mimetype or 'application/octet-stream',
-                        'data': image_data
+                        'data': encrypt_bytes(image_data)
                     })
                     image_ids.append(str(inserted.inserted_id))
 
@@ -466,7 +469,7 @@ def write_connected_file(connected_username):
             'title': title,
             'place': place,
             'image': image_ids,
-            'content_rows': _text_to_rows(text)
+            'content_rows': encrypt_json(_text_to_rows(text))
         })
         flash('Shared file posted.', 'success')
         return redirect(url_for('connection.connection_entries', connected_username=connected_username))

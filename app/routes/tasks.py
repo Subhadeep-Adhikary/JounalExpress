@@ -5,6 +5,7 @@ import pandas as pd
 from bson import ObjectId
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for, flash, session, send_file
 from app.extensions import db
+from app.security import decrypt_text, encrypt_bytes, encrypt_json
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
@@ -24,6 +25,8 @@ def _text_to_rows(text):
 
 
 def _rows_to_text(content_rows):
+    if isinstance(content_rows, dict) and "ciphertext" in content_rows and "nonce" in content_rows:
+        return decrypt_text(content_rows)
     if isinstance(content_rows, str):
         return content_rows
     if not content_rows:
@@ -111,7 +114,7 @@ def writing():
                         'user': str(session.get('user')),
                         'filename': image_file.filename,
                         'content_type': image_file.mimetype or 'application/octet-stream',
-                        'data': image_data
+                        'data': encrypt_bytes(image_data)
                     })
                     image_ids.append(str(inserted.inserted_id))
 
@@ -131,7 +134,7 @@ def writing():
             'image': image_ids,
             'title': title,
             'place': place,
-            'content_rows': _text_to_rows(text)
+            'content_rows': encrypt_json(_text_to_rows(text))
         }
         files_collection.insert_one(new_rec)
         return redirect(url_for('tasks.view'))
@@ -156,7 +159,7 @@ def editing():
             '$or': [{'category': 'personal'}, {'category': {'$exists': False}}]
         }
         set_values = {
-            'content_rows': _text_to_rows(updated),
+            'content_rows': encrypt_json(_text_to_rows(updated)),
             'category': 'personal'
         }
 
@@ -182,7 +185,7 @@ def editing():
                         'user': str(session.get('user')),
                         'filename': new_img_file.filename,
                         'content_type': new_img_file.mimetype or 'application/octet-stream',
-                        'data': image_data
+                        'data': encrypt_bytes(image_data)
                     })
                     new_image_ids.append(str(inserted.inserted_id))
 
@@ -232,8 +235,11 @@ def uploaded_file(filename):
     if not image_doc:
         abort(404)
 
+    raw_image = image_doc.get('data', b'')
+    if isinstance(raw_image, dict) and "ciphertext" in raw_image and "nonce" in raw_image:
+        raw_image = decrypt_bytes(raw_image)
     return Response(
-        image_doc.get('data', b''),
+        raw_image,
         mimetype=image_doc.get('content_type', 'application/octet-stream')
     )
 
