@@ -10,7 +10,7 @@ def create_app():
     app = Flask(__name__)
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "My_secret_key")
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "change-this-in-production")
-    app.config["MONGO_URI"] = os.getenv("MONGO_URI", "mongodb://localhost:27017/NewDiary")
+    app.config["MONGO_URI"] = os.getenv("MONGO_URI", "mongodb://localhost:27017/JournalExpress")
     app.config['MONGO_TRACK_MODIFICATION'] = False
 
     db.init_app(app)
