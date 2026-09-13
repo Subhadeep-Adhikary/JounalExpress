@@ -1,3 +1,5 @@
+from datetime import date
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from app.extensions import db
 
@@ -17,6 +19,7 @@ def login():
         if valid_credentials:
             if password == valid_credentials["password"]:
                 session['user'] = valid_credentials["username"]
+                session['selected_date'] = str(date.today())
                 flash('Logged in successfully', 'success')
                 return redirect(url_for('tasks.view')) 
             else:

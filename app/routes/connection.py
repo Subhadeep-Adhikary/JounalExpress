@@ -37,7 +37,10 @@ def _rows_to_text(content_rows):
         if "content" in content_rows and isinstance(content_rows["content"], str):
             return content_rows["content"]
         if "ciphertext" in content_rows and "nonce" in content_rows:
-            return decrypt_text(content_rows)
+            decrypted = decrypt_text(content_rows)
+            if isinstance(decrypted, str):
+                return _rows_to_text(decrypted)
+            return _rows_to_text(decrypted or "")
         if "line" in content_rows:
             return str(content_rows.get("line", ""))
         if not content_rows:

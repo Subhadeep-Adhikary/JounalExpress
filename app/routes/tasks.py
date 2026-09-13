@@ -35,7 +35,10 @@ def _rows_to_text(content_rows):
         if "content" in content_rows and isinstance(content_rows["content"], str):
             return content_rows["content"]
         if "ciphertext" in content_rows and "nonce" in content_rows:
-            return decrypt_text(content_rows)
+            decrypted = decrypt_text(content_rows)
+            if isinstance(decrypted, str):
+                return _rows_to_text(decrypted)
+            return _rows_to_text(decrypted or "")
         if "line" in content_rows:
             return str(content_rows.get("line", ""))
         if not content_rows:
@@ -82,6 +85,10 @@ def welcome():
 @tasks_bp.route('/view', methods=['GET', 'POST'])
 def view():
     user = session.get('user')
+    today = str(date.today())
+    session['selected_date'] = session.get('selected_date') or today
+    selected_date = session['selected_date']
+
     personal_filter = {
         'user': user,
         '$or': [{'category': 'personal'}, {'category': {'$exists': False}}]
@@ -89,12 +96,9 @@ def view():
     cursor = files_collection.find(personal_filter, {'date': 1, '_id': 0})
     dates = sorted({doc['date'] for doc in cursor if 'date' in doc})
     files = list(files_collection.find(
-        {**personal_filter, 'date': session.get('selected_date')},
+        {**personal_filter, 'date': selected_date},
         {'file': 1, 'title': 1, '_id': 0}
     ))
-    today = date.today()
-    if 'selected_date' not in session:
-        session['selected_date']=str(today)
     
     if request.method=='POST':
         if request.form.get('form_name')=="df":
