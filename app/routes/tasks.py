@@ -1,3 +1,4 @@
+import json
 from datetime import date
 from io import BytesIO
 from xml.sax.saxutils import escape
@@ -19,19 +20,43 @@ tasks_bp = Blueprint('tasks', __name__)
 
 
 def _text_to_rows(text):
-    lines = (text or "").splitlines() or [""]
-    df = pd.DataFrame({"line": lines})
-    return df.to_dict(orient="records")
+    if text is None:
+        return [{"line": ""}]
+    if isinstance(text, str):
+        lines = text.splitlines() or [""]
+        return [{"line": line} for line in lines]
+    if isinstance(text, list):
+        return text
+    return [{"line": str(text)}]
 
 
 def _rows_to_text(content_rows):
-    if isinstance(content_rows, dict) and "ciphertext" in content_rows and "nonce" in content_rows:
-        return decrypt_text(content_rows)
+    if isinstance(content_rows, dict):
+        if "content" in content_rows and isinstance(content_rows["content"], str):
+            return content_rows["content"]
+        if "ciphertext" in content_rows and "nonce" in content_rows:
+            return decrypt_text(content_rows)
+        if "line" in content_rows:
+            return str(content_rows.get("line", ""))
+        if not content_rows:
+            return ""
+
     if isinstance(content_rows, str):
-        return content_rows
+        trimmed = content_rows.strip()
+        if not trimmed:
+            return ""
+        try:
+            parsed = json.loads(trimmed)
+        except (TypeError, ValueError):
+            return content_rows
+        return _rows_to_text(parsed)
+
     if not content_rows:
         return ""
-    df = pd.DataFrame(content_rows)
+    try:
+        df = pd.DataFrame(content_rows)
+    except ValueError:
+        return "".join(str(item) for item in content_rows)
     if "line" not in df.columns:
         return ""
     return "\n".join(df["line"].fillna("").astype(str).tolist())
@@ -86,7 +111,8 @@ def view():
                 '$or': [{'category': 'personal'}, {'category': {'$exists': False}}]
             })
             if File:
-                session['text'] = _rows_to_text(File.get('content_rows', File.get('content', '')))
+                raw_content = File.get('content', File.get('content_rows', ''))
+                session['text'] = _rows_to_text(raw_content)
                 session['image'] = File.get('image', [])
                 session['file'] = File.get('file')
                 session['date'] = File.get('date')
@@ -126,6 +152,7 @@ def writing():
         if not filename:
             filename = f"entry_{date.today()}.txt"
 
+        plain_text = text or ""
         new_rec = {
             'user': str(session.get('user')),
             'category': 'personal',
@@ -134,7 +161,8 @@ def writing():
             'image': image_ids,
             'title': title,
             'place': place,
-            'content_rows': encrypt_json(_text_to_rows(text))
+            'content': plain_text,
+            'content_rows': encrypt_json(_text_to_rows(plain_text))
         }
         files_collection.insert_one(new_rec)
         return redirect(url_for('tasks.view'))
@@ -159,7 +187,8 @@ def editing():
             '$or': [{'category': 'personal'}, {'category': {'$exists': False}}]
         }
         set_values = {
-            'content_rows': encrypt_json(_text_to_rows(updated)),
+            'content': updated or '',
+            'content_rows': encrypt_json(_text_to_rows(updated or '')),
             'category': 'personal'
         }
 
@@ -252,7 +281,7 @@ def read_file(filename):
         '$or': [{'category': 'personal'}, {'category': {'$exists': False}}]
     })
     if file_data:
-        content = _rows_to_text(file_data.get('content_rows', file_data.get('content', '')))
+        content = _rows_to_text(file_data.get('content', file_data.get('content_rows', '')))
         return render_template('read.html', 
                                name=file_data['file'], 
                                date=file_data.get('date'), 
@@ -275,7 +304,7 @@ def download_file_pdf(filename):
         flash(f"File '{filename}' not found.", "error")
         return redirect(url_for('tasks.view'))
 
-    content = _rows_to_text(file_data.get('content_rows', file_data.get('content', '')))
+    content = _rows_to_text(file_data.get('content', file_data.get('content_rows', '')))
 
     pdf_buffer = BytesIO()
     doc = SimpleDocTemplate(
