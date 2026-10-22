@@ -1,9 +1,29 @@
 import os
 from flask import Flask
-from dotenv import load_dotenv
 from .extensions import db
 
+
+def load_dotenv(dotenv_path=None):
+    """Load simple KEY=VALUE entries from an optional environment file."""
+    path = dotenv_path or os.path.join(os.getcwd(), ".env")
+    if not os.path.isfile(path):
+        return False
+
+    with open(path, encoding="utf-8") as env_file:
+        for raw_line in env_file:
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            if key:
+                os.environ.setdefault(key, value.strip().strip('"').strip("'"))
+    return True
+
+# Prefer a project-level .env, while also supporting the app-local file used by
+# existing installations of this project.
 load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
 
 def create_app():
@@ -26,4 +46,3 @@ def create_app():
     app.register_blueprint(tasks_bp)
 
     return app
-

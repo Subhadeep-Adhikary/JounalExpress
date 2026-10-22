@@ -6,7 +6,7 @@ import pandas as pd
 from bson import ObjectId
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for, flash, session, send_file
 from app.extensions import db
-from app.security import decrypt_text, encrypt_bytes, encrypt_json
+from app.security import decrypt_bytes, decrypt_text, encrypt_bytes, encrypt_json
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
@@ -352,7 +352,10 @@ def download_file_pdf(filename):
             if not image_doc or not image_doc.get('data'):
                 continue
 
-            image_data = BytesIO(image_doc['data'])
+            raw_image = image_doc['data']
+            if isinstance(raw_image, dict) and "ciphertext" in raw_image and "nonce" in raw_image:
+                raw_image = decrypt_bytes(raw_image)
+            image_data = BytesIO(raw_image)
             image_reader = ImageReader(image_data)
             img_w, img_h = image_reader.getSize()
             scale = min(max_width / img_w, max_height / img_h, 1)

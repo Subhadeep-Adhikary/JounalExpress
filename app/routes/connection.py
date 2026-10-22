@@ -430,7 +430,10 @@ def download_connected_file_pdf(connected_username, entry_id):
             if not image_doc or not image_doc.get('data'):
                 continue
 
-            image_data = BytesIO(image_doc['data'])
+            raw_image = image_doc['data']
+            if isinstance(raw_image, dict) and "ciphertext" in raw_image and "nonce" in raw_image:
+                raw_image = decrypt_bytes(raw_image)
+            image_data = BytesIO(raw_image)
             image_reader = ImageReader(image_data)
             img_w, img_h = image_reader.getSize()
             scale = min(max_width / img_w, max_height / img_h, 1)
